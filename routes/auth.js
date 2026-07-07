@@ -86,12 +86,6 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,   // 必须返回 role
-        school: user.school
-      }
       user: { id: user.id, username: user.username, role: user.role, school: user.school },
       device_count: Math.min(activeSessions[0].cnt + 1, MAX_DEVICES),
       max_devices: MAX_DEVICES
