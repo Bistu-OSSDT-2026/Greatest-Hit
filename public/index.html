@@ -363,8 +363,8 @@
             return data;
         } catch (err) {
             // token 失效则强制退出
-            if (err.message && err.message.includes('登录已过期')) {
-                alert('登录已过期，请重新登录');
+            if (err.message && (err.message.includes('登录已过期') || err.message.includes('会话已失效'))) {
+                alert(err.message);
                 doLogout();
             }
             throw err;
@@ -444,7 +444,8 @@
         }
     }
 
-    function doLogout() {
+    async function doLogout() {
+        try { await api('/api/auth/logout', { method: 'DELETE' }); } catch (e) { /* ignore */ }
         token = null;
         currentUser = null;
         localStorage.removeItem('token');
