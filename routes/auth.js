@@ -21,7 +21,6 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: '请输入用户名和密码' });
     }
 
-    // 查询用户
     const [rows] = await pool.execute(
       'SELECT id, username, password, role, school FROM users WHERE username = ?',
       [username]
@@ -32,14 +31,11 @@ router.post('/login', async (req, res) => {
     }
 
     const user = rows[0];
-
-    // 验证密码
     const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: '用户名或密码错误' });
     }
 
-    // 生成 JWT
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       JWT_SECRET,
@@ -51,7 +47,7 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        role: user.role,
+        role: user.role,   // 必须返回 role
         school: user.school
       }
     });
