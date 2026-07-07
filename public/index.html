@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北信科旧物交换</title>
+    <style>
+        /* ---------- 全局重置 ---------- */
+        * { margin:0; padding:0; box-sizing:border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background:#f0f2f5; padding:20px; }
+        .app { max-width:1200px; margin:0 auto; }
+
+        /* ---------- 登录页 ---------- */
+        .login-wrap { display:flex; justify-content:center; align-items:center; min-height:90vh; }
+        .login-box { background:white; border-radius:16px; padding:40px; width:380px; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+        .login-box h2 { text-align:center; margin-bottom:8px; }
+        .login-box .sub { text-align:center; color:#888; margin-bottom:24px; }
+        .login-box label { display:block; margin-top:16px; font-weight:bold; }
+        .login-box input, .login-box select { width:100%; padding:10px; margin-top:4px; border:1px solid #ddd; border-radius:8px; }
+        .login-box button { width:100%; margin-top:24px; padding:12px; background:#667eea; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; }
+        .login-box button:hover { background:#5a67d8; }
+        .error { color:#e53e3e; background:#fef2f2; padding:8px; border-radius:6px; margin-bottom:12px; }
+
+        /* ---------- 主页布局 ---------- */
+        .header { background:white; padding:16px 24px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+        .header h1 { font-size:22px; }
+        .header .user-info { display:flex; align-items:center; gap:16px; }
+        .btn-logout { background:#e53e3e; color:white; border:none; padding:6px 16px; border-radius:6px; cursor:pointer; }
+
+        /* 标签栏 */
+        .tabs { display:flex; gap:4px; background:white; border-radius:12px; padding:6px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04); flex-wrap:wrap; }
+        .tab { padding:12px 28px; cursor:pointer; border-radius:8px; font-weight:500; transition:0.2s; }
+        .tab.active { background:#667eea; color:white; }
+        .tab:hover:not(.active) { background:#f0f0f0; }
+
+        /* 内容卡片 */
+        .content { background:white; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.04); display:none; }
+        .content.active { display:block; }
+
+        /* ---------- 商品列表（我要买） ---------- */
+        .filter-bar { display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+        .filter-bar input, .filter-bar select { padding:8px 14px; border:1px solid #ddd; border-radius:8px; }
+        .filter-bar button { padding:8px 20px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer; }
+
+        .goods-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:20px; }
+        .card { border:1px solid #eee; border-radius:10px; overflow:hidden; transition:0.2s; cursor:pointer; }
+        .card:hover { transform:translateY(-4px); box-shadow:0 6px 16px rgba(0,0,0,0.08); }
+        .card img { width:100%; height:160px; object-fit:cover; background:#f0f0f0; }
+        .card-body { padding:12px; }
+        .card-body .name { font-weight:bold; font-size:15px; }
+        .card-body .price { color:#e53e3e; font-size:18px; font-weight:bold; margin:4px 0; }
+        .card-body .meta { font-size:13px; color:#555; }
+        .card-body .btn-contact { background:#667eea; color:white; border:none; padding:4px 12px; border-radius:4px; cursor:pointer; margin-top:6px; }
+
+        /* ---------- 发布表单（我要卖） ---------- */
+        .form-group { margin-bottom:18px; }
+        .form-group label { display:block; font-weight:bold; margin-bottom:4px; }
+        .form-group input, .form-group textarea, .form-group select { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; }
+        .form-group textarea { height:80px; }
+        .hint-box { background:#fef3c7; padding:10px; border-radius:6px; color:#92400e; margin-top:6px; display:none; }
+        .price-suggest { background:#e0f2fe; padding:10px; border-radius:6px; color:#0369a1; margin-top:6px; display:none; }
+        .btn-submit { background:#667eea; color:white; border:none; padding:12px 32px; border-radius:8px; font-size:16px; cursor:pointer; }
+
+        /* ---------- 管理员表格 ---------- */
+        table { width:100%; border-collapse:collapse; }
+        th { background:#f7fafc; padding:12px; text-align:left; border-bottom:2px solid #ddd; }
+        td { padding:12px; border-bottom:1px solid #eee; }
+        .tag { padding:2px 12px; border-radius:12px; font-size:13px; }
+        .tag-sold { background:#fed7d7; color:#e53e3e; }
+        .tag-onsale { background:#c6f6d5; color:#38a169; }
+        .tag-offline { background:#fbbf24; color:#92400e; }
+        .admin-search { margin-bottom:16px; }
+        .admin-search input { padding:8px 14px; border:1px solid #ddd; border-radius:8px; width:280px; }
+        .btn-offline { background:#f59e0b; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:12px; }
+        .btn-offline:hover { background:#d97706; }
+        .btn-restore { background:#10b981; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:12px; }
+        .btn-restore:hover { background:#059669; }
+        .offline-reason { font-size:12px; color:#888; }
+
+        /* ---------- 我的信息 ---------- */
+        .myinfo { text-align:center; padding:30px 0; }
+        .myinfo .avatar { font-size:72px; }
+        .myinfo p { font-size:16px; margin:8px 0; }
+        .myinfo .btn-mygoods { margin-top:20px; padding:10px 30px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer; }
+
+        .my-goods-list { margin-top:20px; text-align:left; display:none; }
+        .my-goods-list .goods-item { padding:12px; border-bottom:1px solid #eee; cursor:pointer; display:flex; align-items:center; gap:16px; }
+        .my-goods-list .goods-item:hover { background:#f7fafc; }
+        .my-goods-list .goods-item img { width:60px; height:60px; object-fit:cover; border-radius:6px; }
+        .my-goods-list .goods-item .info { flex:1; }
+        .my-goods-list .goods-item .info .name { font-weight:bold; }
+        .my-goods-list .goods-item .info .price { color:#e53e3e; }
+        .my-goods-list .goods-item .status-offline { color:#e53e3e; font-weight:bold; margin-left:10px; }
+        .my-goods-list .goods-item .offline-reason { font-size:12px; color:#888; }
+
+        /* 地点标签 */
+        .location-tag { background:#e2e8f0; padding:2px 8px; border-radius:4px; font-size:12px; }
+        .condition-tag { background:#fefcbf; padding:2px 8px; border-radius:4px; font-size:12px; }
+
+        /* ---------- 详情模态框 ---------- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.6);
+            justify-content:center;
+            align-items:center;
+            z-index:1000;
+            padding:20px;
+        }
+        .modal-overlay.active { display:flex; }
+        .modal-box {
+            background:white;
+            max-width:800px;
+            width:100%;
+            border-radius:16px;
+            padding:30px;
+            max-height:90vh;
+            overflow-y:auto;
+            position:relative;
+        }
+        .modal-close {
+            position:absolute;
+            top:12px;
+            right:20px;
+            font-size:28px;
+            cursor:pointer;
+            color:#888;
+            background:none;
+            border:none;
+        }
+        .modal-close:hover { color:#333; }
+        .modal-box .detail-img { width:100%; max-height:400px; object-fit:contain; background:#f0f0f0; border-radius:8px; margin-bottom:16px; }
+        .modal-box .detail-title { font-size:24px; font-weight:bold; margin-bottom:8px; }
+        .modal-box .detail-price { font-size:28px; color:#e53e3e; font-weight:bold; }
+        .modal-box .detail-meta { margin:8px 0; color:#555; }
+        .modal-box .detail-desc { margin-top:12px; padding:12px; background:#f7fafc; border-radius:6px; }
+        .modal-box .detail-actions { margin-top:16px; display:flex; gap:12px; }
+        .modal-box .detail-actions button { padding:8px 20px; border:none; border-radius:6px; cursor:pointer; }
+        .btn-contact-detail { background:#667eea; color:white; }
+        .btn-close-detail { background:#e2e8f0; color:#333; }
+        .modal-error { background:#fee2e2; color:#991b1b; padding:12px; border-radius:8px; text-align:center; }
+    </style>
+</head>
+<body>
+
+<div class="app" id="app">
+    <!-- ========== 登录页面 ========== -->
+    <div id="loginPage" class="login-wrap">
+        <div class="login-box">
+            <h2>🏫 北信科旧物交换</h2>
+            <p class="sub">仅限校内同学 · 后端版</p>
+            <div id="loginError" class="error" style="display:none;"></div>
+            <label>用户名</label>
+            <input type="text" id="loginUser" value="admin">
+            <label>密码</label>
+            <input type="password" id="loginPass" value="123">
+            <label>登录身份（仅供参考，角色由服务器决定）</label>
+            <select id="loginRole">
+                <option value="admin">管理员</option>
+                <option value="user" selected>普通用户</option>
+            </select>
+            <button onclick="doLogin()">进入平台</button>
+            <div style="margin-top:10px; font-size:12px; color:#888;">提示：可用账号 admin/123, 张三/123 等（密码统一为 123）</div>
+        </div>
+    </div>
+
+    <!-- ========== 主界面（登录后显示） ========== -->
+    <div id="mainPage" style="display:none;">
+        <!-- 顶栏 -->
+        <div class="header">
+            <h1>📚 北信科旧物交换</h1>
+            <div class="user-info">
+                <span id="displayName">用户</span>
+                <button class="btn-logout" onclick="doLogout()">退出</button>
+            </div>
+        </div>
+
+        <!-- 标签 -->
+        <div class="tabs">
+            <div class="tab active" data-tab="buy" onclick="switchTab('buy')">🛒 我要买</div>
+            <div class="tab" data-tab="sell" onclick="switchTab('sell')">📤 我要卖</div>
+            <div class="tab" data-tab="admin" onclick="switchTab('admin')" id="adminTab" style="display:none;">📊 管理后台</div>
+            <div class="tab" data-tab="my" onclick="switchTab('my')">👤 我的信息</div>
+        </div>
+
+        <!-- ===== 我要买 ===== -->
+        <div class="content active" id="tab-buy">
+            <div class="filter-bar">
+                <input type="text" id="searchInput" placeholder="搜索商品名称..." oninput="renderGoods()">
+                <span>价格上限：</span>
+                <input type="number" id="priceInput" value="999" style="width:100px;" oninput="renderGoods()">
+                <span>元</span>
+                <span>成色：</span>
+                <select id="conditionFilter" onchange="renderGoods()">
+                    <option value="">全部</option>
+                    <option value="一成新">一成新</option>
+                    <option value="二成新">二成新</option>
+                    <option value="三成新">三成新</option>
+                    <option value="四成新">四成新</option>
+                    <option value="五成新">五成新</option>
+                    <option value="六成新">六成新</option>
+                    <option value="七成新">七成新</option>
+                    <option value="八成新">八成新</option>
+                    <option value="九成新">九成新</option>
+                    <option value="全新">全新</option>
+                </select>
+                <button onclick="resetFilter()">重置</button>
+            </div>
+            <div class="goods-grid" id="goodsContainer"></div>
+        </div>
+
+        <!-- ===== 我要卖 ===== -->
+        <div class="content" id="tab-sell">
+            <h3 style="margin-bottom:16px;">发布新商品</h3>
+            <form onsubmit="submitGoods(event)">
+                <div class="form-group">
+                    <label>商品名称</label>
+                    <input type="text" id="gName" placeholder="例如：高等数学教材" oninput="checkHintAndSuggest()">
+                    <div id="hintBox" class="hint-box"></div>
+                    <div id="priceSuggest" class="price-suggest"></div>
+                </div>
+                <div class="form-group">
+                    <label>价格（元）</label>
+                    <input type="number" id="gPrice" placeholder="0" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>几成新</label>
+                    <select id="gCondition">
+                        <option value="一成新">一成新</option>
+                        <option value="二成新">二成新</option>
+                        <option value="三成新">三成新</option>
+                        <option value="四成新">四成新</option>
+                        <option value="五成新">五成新</option>
+                        <option value="六成新">六成新</option>
+                        <option value="七成新">七成新</option>
+                        <option value="八成新">八成新</option>
+                        <option value="九成新" selected>九成新</option>
+                        <option value="全新">全新</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>交易地点</label>
+                    <select id="gLocation">
+                        <option value="学一公寓">学一公寓</option>
+                        <option value="学二公寓A">学二公寓A</option>
+                        <option value="学二公寓B">学二公寓B</option>
+                        <option value="学三公寓">学三公寓</option>
+                        <option value="学四北楼">学四北楼</option>
+                        <option value="学四南楼">学四南楼</option>
+                        <option value="工学A">工学A</option>
+                        <option value="工学B">工学B</option>
+                        <option value="工学C">工学C</option>
+                        <option value="文理A">文理A</option>
+                        <option value="文理B">文理B</option>
+                        <option value="文理C">文理C</option>
+                        <option value="物美超市">物美超市</option>
+                        <option value="图书馆广场">图书馆广场</option>
+                        <option value="信息A">信息A</option>
+                        <option value="信息B">信息B</option>
+                        <option value="信息C">信息C</option>
+                        <option value="信息D">信息D</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>商品描述</label>
+                    <textarea id="gDesc" placeholder="描述成色、使用情况..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>图片链接（可选）</label>
+                    <input type="text" id="gImage" placeholder="https://picsum.photos/seed/xxx/600/400">
+                </div>
+                <button type="submit" class="btn-submit">立即发布</button>
+            </form>
+        </div>
+
+        <!-- ===== 管理后台 ===== -->
+        <div class="content" id="tab-admin">
+            <h3 style="margin-bottom:12px;">📊 所有交易记录</h3>
+            <div class="admin-search">
+                <input type="text" id="adminSearch" placeholder="搜索商品名..." oninput="renderAdminTable()">
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>ID</th><th>图片</th><th>商品名</th><th>价格</th><th>成色</th><th>地点</th><th>卖家</th><th>买家</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody id="adminBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== 我的信息 ===== -->
+        <div class="content" id="tab-my">
+            <div class="myinfo">
+                <div class="avatar">👤</div>
+                <p><strong>用户名：</strong><span id="myUsername"></span></p>
+                <p><strong>角色：</strong><span id="myRole"></span></p>
+                <p><strong>学校：</strong>北京信息科技大学</p>
+                <button class="btn-mygoods" onclick="toggleMyGoods()">📦 查看我发布的商品</button>
+                <div id="myGoodsList" class="my-goods-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 详情模态框 ===== -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+        <div id="detailContent">
+            <img class="detail-img" id="detailImg" src="" alt="商品大图">
+            <div class="detail-title" id="detailTitle"></div>
+            <div class="detail-price" id="detailPrice"></div>
+            <div class="detail-meta"><span id="detailCondition"></span> | <span id="detailLocation"></span></div>
+            <div class="detail-meta">卖家：<span id="detailSeller"></span> | 状态：<span id="detailStatus"></span></div>
+            <div class="detail-desc" id="detailDesc"></div>
+            <div class="detail-actions">
+                <button class="btn-contact-detail" onclick="contactSellerDetail()">📞 联系卖家</button>
+                <button class="btn-close-detail" onclick="closeDetail()">关闭</button>
+            </div>
+        </div>
+        <div id="detailError" class="modal-error" style="display:none;">商品异常，请刷新重试</div>
+    </div>
+</div>
+
+<!-- ===== 下架原因输入模态框 ===== -->
+<div class="modal-overlay" id="offlineModal">
+    <div class="modal-box" style="max-width:500px;">
+        <h3 style="margin-bottom:16px;">下架商品</h3>
+        <p>请输入下架原因（将通知卖家）：</p>
+        <input type="text" id="offlineReasonInput" placeholder="例如：价格虚高" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:6px;">
+        <div style="display:flex; gap:12px; margin-top:10px;">
+            <button onclick="confirmOffline()" style="background:#f59e0b; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">确认下架</button>
+            <button onclick="closeOfflineModal()" style="background:#e2e8f0; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // 全局状态 & API 工具函数
+    // ============================================================
+    let token = localStorage.getItem('token') || null;       // JWT 令牌
+    let currentUser = null;                                   // 当前登录用户 { id, username, role, school }
+    let goodsCache = [];                                      // 我要买列表缓存（用于价格建议）
+    let currentDetailItem = null;                             // 当前查看详情的商品
+    let offlineTargetId = null;                               // 准备下架的商品 ID
+
+    // 后端 API 基础地址（同源时留空）
+    const API_BASE = '';
+
+    /**
+     * 统一 fetch 封装：自动携带 token、统一错误处理
+     */
+    async function api(url, options = {}) {
+        const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        try {
+            const resp = await fetch(API_BASE + url, { ...options, headers });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+                throw new Error(data.error || `请求失败 (${resp.status})`);
+            }
+            return data;
+        } catch (err) {
+            // token 失效则强制退出
+            if (err.message && err.message.includes('登录已过期')) {
+                alert('登录已过期，请重新登录');
+                doLogout();
+            }
+            throw err;
+        }
+    }
+
+    // ============================================================
+    // 1. 登录 / 退出
+    // ============================================================
+    async function doLogin() {
+        const username = document.getElementById('loginUser').value.trim();
+        const password = document.getElementById('loginPass').value.trim();
+        const selectedRole = document.getElementById('loginRole').value;
+
+        const err = document.getElementById('loginError');
+        err.style.display = 'none';
+
+        try {
+            const data = await api('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+
+            token = data.token;
+            localStorage.setItem('token', token);
+            currentUser = data.user;
+
+            // 如果用户选了管理员但实际不是，给出提示（角色由服务器决定）
+            if (selectedRole === 'admin' && currentUser.role !== 'admin') {
+                alert('您没有管理员权限，将以普通用户身份登录。');
+            }
+
+            enterMainPage();
+        } catch (e) {
+            err.style.display = 'block';
+            err.textContent = e.message || '登录失败';
+        }
+    }
+
+    function enterMainPage() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainPage').style.display = 'block';
+        document.getElementById('displayName').textContent = currentUser.username;
+
+        // 根据服务器返回的角色显示/隐藏管理后台
+        document.getElementById('adminTab').style.display =
+            currentUser.role === 'admin' ? 'inline-block' : 'none';
+
+        document.getElementById('myUsername').textContent = currentUser.username;
+        document.getElementById('myRole').textContent = currentUser.role === 'admin' ? '管理员' : '普通用户';
+
+        document.getElementById('myGoodsList').innerHTML = '';
+        document.getElementById('myGoodsList').style.display = 'none';
+
+        // 检查下架通知
+        if (currentUser.role === 'user') {
+            checkOfflineNotifications();
+        }
+
+        switchTab('buy');
+        renderGoods();
+    }
+
+    // 下架通知：从服务器拉取未读的下架消息
+    async function checkOfflineNotifications() {
+        try {
+            const items = await api('/api/goods/my/offline-notifications');
+            if (items.length > 0) {
+                let msg = '⚠️ 您的以下商品已被管理员下架：\n\n';
+                items.forEach(item => {
+                    msg += `- ${item.name}（原因：${item.offline_reason || '未说明'}）\n`;
+                });
+                alert(msg);
+            }
+        } catch (e) {
+            console.error('获取下架通知失败:', e);
+        }
+    }
+
+    function doLogout() {
+        token = null;
+        currentUser = null;
+        localStorage.removeItem('token');
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('mainPage').style.display = 'none';
+        document.getElementById('loginError').style.display = 'none';
+        closeDetail();
+        closeOfflineModal();
+    }
+
+    // ============================================================
+    // 2. 标签切换
+    // ============================================================
+    function switchTab(name) {
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${name}"]`)?.classList.add('active');
+        document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+        const content = document.getElementById(`tab-${name}`);
+        if (content) content.classList.add('active');
+        if (name === 'admin') renderAdminTable();
+        if (name === 'my') {
+            const list = document.getElementById('myGoodsList');
+            if (list.style.display !== 'none') renderMyGoods();
+        }
+        closeDetail();
+    }
+
+    function resetFilter() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('priceInput').value = '999';
+        document.getElementById('conditionFilter').value = '';
+        renderGoods();
+    }
+
+    // ============================================================
+    // 3. 商品列表（我要买） - 从 API 获取
+    // ============================================================
+    async function renderGoods() {
+        const keyword = document.getElementById('searchInput').value.trim();
+        const maxPrice = parseFloat(document.getElementById('priceInput').value) || 999;
+        const condition = document.getElementById('conditionFilter').value;
+
+        // 构造查询参数
+        const params = new URLSearchParams();
+        if (keyword) params.set('keyword', keyword);
+        if (maxPrice < 999) params.set('maxPrice', maxPrice);
+        if (condition) params.set('condition', condition);
+
+        const container = document.getElementById('goodsContainer');
+        container.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#999;">加载中...</p>';
+
+        try {
+            const list = await api('/api/goods?' + params.toString());
+            goodsCache = list; // 缓存用于价格建议
+
+            if (list.length === 0) {
+                container.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#999;">暂无匹配商品</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <div class="card" onclick="openDetail(${item.id})">
+                    <img src="${item.image_url || 'https://picsum.photos/200/200'}" alt="商品图">
+                    <div class="card-body">
+                        <div class="name">${item.name}</div>
+                        <div class="price">¥${item.price}</div>
+                        <div class="meta">卖家：${item.seller}</div>
+                        <div class="meta">状态：${item.buyer_id ? '已售出' : '在售'}</div>
+                        <div class="meta">
+                            <span class="location-tag">📍 ${item.location}</span>
+                            <span class="condition-tag">${item.condition}</span>
+                        </div>
+                        <button class="btn-contact" onclick="event.stopPropagation(); contactSeller(${item.id})">联系</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#e53e3e;">加载失败：${e.message}</p>`;
+        }
+    }
+
+    // ============================================================
+    // 4. 发布商品（我要卖）
+    // ============================================================
+    function checkHintAndSuggest() {
+        const name = document.getElementById('gName').value.trim();
+        const hintBox = document.getElementById('hintBox');
+        const suggestBox = document.getElementById('priceSuggest');
+
+        const map = {
+            '数学':'📊 北信科近期同类数学教材成交价约为 15~30 元',
+            '英语':'📊 英语类书籍常见成交价 10~25 元',
+            '物理':'📊 物理教材参考价 15~35 元',
+            '计算机':'📊 编程类书籍一般 20~50 元',
+            '考研':'📊 考研资料热门，价格在 30~60 元之间',
+            '自行车':'📊 二手自行车校内通常 100~200 元',
+            '卡套':'📊 校园卡套小商品，约 3~10 元'
+        };
+        let hint = '';
+        for (let key in map) {
+            if (name.includes(key)) { hint = map[key]; break; }
+        }
+        if (hint) {
+            hintBox.style.display = 'block';
+            hintBox.textContent = hint;
+        } else {
+            hintBox.style.display = 'none';
+        }
+
+        if (name.length < 2) {
+            suggestBox.style.display = 'none';
+            return;
+        }
+        // 基于缓存中的在售商品做价格建议
+        const matched = goodsCache.filter(item => item.name.toLowerCase().includes(name.toLowerCase()));
+        if (matched.length === 0) {
+            suggestBox.style.display = 'none';
+            return;
+        }
+        const prices = matched.map(item => parseFloat(item.price));
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const avg = (prices.reduce((a, b) => a + b, 0) / prices.length).toFixed(1);
+        suggestBox.style.display = 'block';
+        suggestBox.textContent = `📈 根据已上架 ${matched.length} 件相似商品，价格范围：${min} ~ ${max} 元，平均：${avg} 元`;
+    }
+
+    async function submitGoods(e) {
+        e.preventDefault();
+        const name = document.getElementById('gName').value.trim();
+        const price = parseFloat(document.getElementById('gPrice').value);
+        const condition = document.getElementById('gCondition').value;
+        const location = document.getElementById('gLocation').value;
+        const desc = document.getElementById('gDesc').value.trim();
+        const image = document.getElementById('gImage').value.trim();
+
+        if (!name || isNaN(price) || price < 0) {
+            alert('请正确填写名称和价格');
+            return;
+        }
+
+        try {
+            await api('/api/goods', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name, price, condition, location,
+                    description: desc,
+                    image_url: image || ''
+                })
+            });
+
+            alert('✅ 发布成功！');
+            e.target.reset();
+            document.getElementById('hintBox').style.display = 'none';
+            document.getElementById('priceSuggest').style.display = 'none';
+            document.getElementById('gCondition').value = '九成新';
+            document.getElementById('gLocation').value = '学一公寓';
+
+            renderGoods();
+            if (document.getElementById('tab-admin').classList.contains('active')) renderAdminTable();
+            const myList = document.getElementById('myGoodsList');
+            if (myList.style.display !== 'none') renderMyGoods();
+        } catch (err) {
+            alert('发布失败：' + err.message);
+        }
+    }
+
+    // ============================================================
+    // 5. 管理员表格（含下架和恢复） - 从 API 获取
+    // ============================================================
+    async function renderAdminTable() {
+        const keyword = document.getElementById('adminSearch').value.trim();
+        const tbody = document.getElementById('adminBody');
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">加载中...</td></tr>';
+
+        try {
+            const params = keyword ? ('?keyword=' + encodeURIComponent(keyword)) : '';
+            const list = await api('/api/admin/goods' + params);
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = list.map(item => {
+                const statusText = item.status === 'onsale' ? '在售' : (item.status === 'offline' ? '已下架' : '已售出');
+                const statusClass = item.status === 'onsale' ? 'tag-onsale' : (item.status === 'offline' ? 'tag-offline' : 'tag-sold');
+                const offlineReason = item.offline_reason ? `<div class="offline-reason">原因：${item.offline_reason}</div>` : '';
+                let actionBtn = '';
+                if (item.status === 'onsale') {
+                    actionBtn = `<button class="btn-offline" onclick="prepareOffline(${item.id})">下架</button>`;
+                } else if (item.status === 'offline') {
+                    actionBtn = `<button class="btn-restore" onclick="restoreGoods(${item.id})">恢复上架</button>`;
+                } else {
+                    actionBtn = '--';
+                }
+                return `
+                    <tr>
+                        <td>${item.id}</td>
+                        <td><img src="${item.image_url || 'https://picsum.photos/40/40'}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
+                        <td>${item.name}</td>
+                        <td>¥${item.price}</td>
+                        <td>${item.condition || '未填'}</td>
+                        <td>${item.location || '未填'}</td>
+                        <td>${item.seller}</td>
+                        <td>${item.buyer_id ? item.buyer : '未售出'}</td>
+                        <td><span class="tag ${statusClass}">${statusText}</span>${offlineReason}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#e53e3e;">加载失败：${e.message}</td></tr>`;
+        }
+    }
+
+    // 准备下架
+    function prepareOffline(id) {
+        offlineTargetId = id;
+        document.getElementById('offlineReasonInput').value = '';
+        document.getElementById('offlineModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeOfflineModal() {
+        document.getElementById('offlineModal').classList.remove('active');
+        document.body.style.overflow = '';
+        offlineTargetId = null;
+    }
+
+    async function confirmOffline() {
+        const reason = document.getElementById('offlineReasonInput').value.trim();
+        if (!reason) {
+            alert('请填写下架原因');
+            return;
+        }
+        try {
+            await api(`/api/admin/goods/${offlineTargetId}/offline`, {
+                method: 'PUT',
+                body: JSON.stringify({ reason })
+            });
+            alert(`✅ 商品已下架，原因：${reason}`);
+            closeOfflineModal();
+            renderAdminTable();
+            renderGoods();
+            const myList = document.getElementById('myGoodsList');
+            if (myList.style.display !== 'none') renderMyGoods();
+        } catch (e) {
+            alert('下架失败：' + e.message);
+            closeOfflineModal();
+        }
+    }
+
+    async function restoreGoods(id) {
+        if (!confirm('确定要恢复该商品为上架状态吗？')) return;
+        try {
+            const data = await api(`/api/admin/goods/${id}/restore`, { method: 'PUT' });
+            alert('✅ ' + data.message);
+            renderAdminTable();
+            renderGoods();
+            const myList = document.getElementById('myGoodsList');
+            if (myList.style.display !== 'none') renderMyGoods();
+        } catch (e) {
+            alert('恢复失败：' + e.message);
+        }
+    }
+
+    // ============================================================
+    // 6. 我的信息 - 我发布的商品（从 API 获取）
+    // ============================================================
+    function toggleMyGoods() {
+        const listDiv = document.getElementById('myGoodsList');
+        if (listDiv.style.display === 'none') {
+            renderMyGoods();
+            listDiv.style.display = 'block';
+        } else {
+            listDiv.style.display = 'none';
+        }
+    }
+
+    async function renderMyGoods() {
+        const listDiv = document.getElementById('myGoodsList');
+        if (!currentUser) return;
+        listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">加载中...</p>';
+
+        try {
+            const myItems = await api('/api/goods/my');
+            if (myItems.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">您还没有发布过商品</p>';
+                return;
+            }
+            listDiv.innerHTML = myItems.map(item => {
+                const isOffline = item.status === 'offline';
+                const statusHtml = isOffline
+                    ? `<span class="status-offline">已下架</span> <span class="offline-reason">（原因：${item.offline_reason || '未说明'}）</span>`
+                    : '';
+                return `
+                    <div class="goods-item" onclick="${isOffline ? 'alert(\'该商品已被下架，无法查看详情\')' : `openDetail(${item.id})`}" style="${isOffline ? 'opacity:0.7;' : ''}">
+                        <img src="${item.image_url || 'https://picsum.photos/60/60'}" alt="商品图">
+                        <div class="info">
+                            <div class="name">${item.name} ${statusHtml}</div>
+                            <div class="price">¥${item.price}</div>
+                            <div style="font-size:13px; color:#888;">${item.condition} · ${item.location}</div>
+                            <div style="font-size:13px; color:#888;">状态：${item.buyer_id ? '已售出' : (isOffline ? '已下架' : '在售')}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {
+            listDiv.innerHTML = `<p style="text-align:center; color:#e53e3e; padding:20px;">加载失败：${e.message}</p>`;
+        }
+    }
+
+    // ============================================================
+    // 7. 详情模态框（从 API 获取详情）
+    // ============================================================
+    async function openDetail(id) {
+        try {
+            const item = await api(`/api/goods/${id}`);
+            if (item.status === 'offline') {
+                document.getElementById('detailContent').style.display = 'none';
+                document.getElementById('detailError').style.display = 'block';
+                document.getElementById('detailModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    alert('商品异常，请刷新重试');
+                    closeDetail();
+                    renderGoods();
+                }, 1500);
+                return;
+            }
+
+            document.getElementById('detailContent').style.display = 'block';
+            document.getElementById('detailError').style.display = 'none';
+            currentDetailItem = item;
+            document.getElementById('detailImg').src = item.image_url || 'https://picsum.photos/600/400';
+            document.getElementById('detailTitle').textContent = item.name;
+            document.getElementById('detailPrice').textContent = `¥${item.price}`;
+            document.getElementById('detailCondition').textContent = `成色：${item.condition}`;
+            document.getElementById('detailLocation').textContent = `地点：${item.location}`;
+            document.getElementById('detailSeller').textContent = item.seller;
+            document.getElementById('detailStatus').textContent = item.buyer_id ? '已售出' : '在售';
+            document.getElementById('detailDesc').textContent = item.description || '暂无描述';
+            document.getElementById('detailModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } catch (e) {
+            alert('加载详情失败：' + e.message);
+        }
+    }
+
+    function closeDetail() {
+        document.getElementById('detailModal').classList.remove('active');
+        document.body.style.overflow = '';
+        currentDetailItem = null;
+        document.getElementById('detailContent').style.display = 'block';
+        document.getElementById('detailError').style.display = 'none';
+    }
+
+    function contactSeller(id) {
+        // 这里仅作前端提示；真实环境可通过后端查询卖家联系方式
+        const item = goodsCache.find(g => g.id === id);
+        if (!item) { alert('商品不存在'); return; }
+        if (item.status === 'offline') { alert('商品异常，请刷新重试'); renderGoods(); return; }
+        alert(`联系卖家：${item.seller} (企业微信)`);
+    }
+
+    function contactSellerDetail() {
+        if (currentDetailItem) {
+            if (currentDetailItem.status === 'offline') {
+                alert('商品异常，请刷新重试');
+                closeDetail();
+                renderGoods();
+                return;
+            }
+            alert(`联系卖家：${currentDetailItem.seller} (企业微信)`);
+        }
+    }
+
+    // 模态框背景点击 / ESC 关闭
+    document.getElementById('detailModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDetail();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDetail();
+            closeOfflineModal();
+        }
+    });
+
+    // ============================================================
+    // 8. 页面初始化：若有 token 则自动登录
+    // ============================================================
+    (async function init() {
+        if (!token) return;
+        try {
+            const user = await api('/api/auth/me');
+            currentUser = user;
+            enterMainPage();
+        } catch (e) {
+            // token 无效，清除
+            doLogout();
+        }
+    })();
+</script>
+</body>
+</html>
