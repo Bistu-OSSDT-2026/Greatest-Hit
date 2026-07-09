@@ -1,6 +1,6 @@
 {
   "name": "exchange-backend",
-  "version": "1.0.0",
+  "version": "1.0.0", 
   "description": "北信科旧物交换平台后端",
   "main": "server.js",
   "scripts": {
