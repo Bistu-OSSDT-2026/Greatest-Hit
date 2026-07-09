@@ -1,6 +1,47 @@
-# 北信科旧物交换平台 - 后端
+<center><h1>北信科旧物交换平台 · 后端</h1></center>
 
-基于 **Node.js + Express + MySQL + JWT** 的二手物品交易平台后端。
+<p align="center">
+  面向校园的二手闲置交易后端服务 · 商品全生命周期管理 · 权限体系 · 设备登录管控
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js->=16-green?logo=node.js" alt="Node Version">
+  <img src="https://img.shields.io/badge/MySQL->=5.7-blue?logo=mysql" alt="MySQL Version">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+  <img src="https://img.shields.io/badge/Express-4.x-lightgrey?logo=express" alt="Express">
+  <img src="https://img.shields.io/badge/JWT-Auth-orange" alt="JWT Auth">
+  <img src="https://img.shields.io/badge/维护中-✅-brightgreen" alt="Status">
+</p>
+
+<br>
+
+<p align="center">
+  <img src="https://github.com/Bistu-OSSDT-2026/Greatest-Hit/blob/main/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260707160509_163_399.png?raw=true" width="92%" alt="平台运行演示">
+</p>
+
+<br>
+
+> 基于 **Node.js + Express + MySQL + JWT** 构建的开箱即用校园二手交易后端，覆盖商品发布检索、多设备登录限制、管理员上下架审核、下架通知等完整能力。采用分层架构设计，内置 XSS 防护、SQL 注入防御、权限中间件等安全能力，适合校园场景快速部署与二次开发。
+
+## ✨ 核心特性
+
+- 🎯 商品全生命周期管理：发布、检索、详情、上下架全流程覆盖
+- 🔑 安全身份体系：JWT 令牌认证 + 服务端会话管理，支持登出即时失效
+- 📱 多设备登录限制：单用户默认最多 2 台设备在线，超限自动挤掉最早会话
+- 🛡 管理员权限体系：独立权限中间件，支持商品下架、恢复、全量管理
+- ⚡ 数据库连接池：MySQL 连接池封装，稳定高效
+- 🔒 多层安全防护：bcrypt 密码哈希、XSS 转义、SQL 参数化查询
+
+## 🛠 技术栈明细
+
+| 模块 | 选型 |
+|------|------|
+| 运行环境 | Node.js >= 16 |
+| Web 框架 | Express.js |
+| 数据库 | MySQL >= 5.7 |
+| 认证方案 | JSON Web Token + 服务端 Session |
+| 密码加密 | bcrypt (cost=10) |
+| 安全防护 | XSS 输入转义、参数化查询 |
 
 ## 🌐 在线访问
 
@@ -9,9 +50,110 @@
 | 本机 | http://localhost:3000 |
 | 公网（ngrok 隧道） | https://lizard-strut-commodity.ngrok-free.dev |
 
+## 👤 测试账号
+
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| admin | 123 | 管理员 |
+| 张三 / 李四 / 王五 / 赵六 / 孙七 / 周八 / 吴九 | 123 | 普通用户 |
+
+## 🚀 快速开始
+
+### 1. 安装依赖
+
+```bash
+cd exchange-backend
+npm install
+```
+
+### 2. 配置数据库
+
+复制 `.env.example` 为 `.env`，填入 MySQL 账号密码：
+
+```plaintext
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=你的密码
+DB_NAME=exchange_db
+```
+
+### 3. 初始化数据库
+
+```bash
+mysql -u root -p --default-character-set=utf8mb4 < sql/init.sql
+mysql -u root -p --default-character-set=utf8mb4 < sql/migrations/001_add_sessions.sql
+```
+
+### 4. 启动服务
+
+```bash
+npm start
+```
+
+启动成功输出：
+
+```plaintext
+=================================
+  北信科旧物交换平台后端已启动
+  本机访问: http://localhost:3000
+=================================
+```
+
+### 5. 公网访问（可选）
+
+```bash
+# 方式A：ngrok（稳定，需注册免费账号 https://ngrok.com）
+./ngrok http 3000
+
+# 方式B：localtunnel（无需注册）
+npx lt --port 3000
+```
+
+## 📱 设备登录限制
+
+每用户最多同时 2 台设备在线。超出后自动踢除最早登录的设备。
+
+| 行为 | 结果 |
+|------|------|
+| 第 1 次登录 | ✅ 正常（1/2） |
+| 第 2 次登录 | ✅ 正常（2/2） |
+| 第 3 次登录 | ⚠️ 自动挤掉最早设备 |
+| 登出 | JWT 立即失效 |
+
+## 📡 API 接口
+
+### 认证
+
+| 方法 | 路径 | 说明 | 认证要求 |
+|------|------|------|----------|
+| POST | `/api/auth/login` | 登录，返回 JWT + 设备数 | 否 |
+| DELETE | `/api/auth/logout` | 登出，清除服务端会话 | JWT |
+| GET | `/api/auth/me` | 获取当前用户 + 设备数 | JWT |
+
+### 商品
+
+| 方法 | 路径 | 说明 | 认证要求 |
+|------|------|------|----------|
+| GET | `/api/goods?keyword=&maxPrice=&condition=` | 浏览在售商品 | 否 |
+| GET | `/api/goods/:id` | 商品详情 | 否 |
+| POST | `/api/goods` | 发布商品 | JWT |
+| GET | `/api/goods/my` | 我发布的商品 | JWT |
+| GET | `/api/goods/my/offline-notifications` | 下架通知 | JWT |
+
+### 管理员
+
+| 方法 | 路径 | 说明 | 认证要求 |
+|------|------|------|----------|
+| GET | `/api/admin/goods?keyword=` | 全部商品 | Admin |
+| PUT | `/api/admin/goods/:id/offline` | 下架（需 reason） | Admin |
+| PUT | `/api/admin/goods/:id/restore` | 恢复上架 | Admin |
+
+> 鉴权接口请求需携带请求头：`Authorization: Bearer <你的token>`
+
 ## 📁 项目结构
 
-```
+```plaintext
 exchange-backend/
 ├── package.json              # 依赖配置
 ├── .env                      # 环境变量（不上传 Git）
@@ -35,104 +177,51 @@ exchange-backend/
     └── index.html            # 前端页面
 ```
 
-## 🚀 启动步骤
+## 🔒 安全设计
 
-### 1. 安装依赖
-```bash
-cd exchange-backend
-npm install
-```
+- ✅ 密码使用 bcrypt 哈希存储（cost=10）
+- ✅ JWT 令牌认证 + jti 追踪，有效期 24 小时
+- ✅ 角色由服务器决定，前端无法篡改
+- ✅ 设备限制：每用户最多 2 台设备，超限自动踢除
+- ✅ 登出即失效：服务端清除 session，旧 token 无法复用
+- ✅ 管理员接口有双重中间件保护（auth + adminOnly）
+- ✅ 所有用户输入经服务端 XSS 转义
+- ✅ SQL 使用参数化查询，防 SQL 注入
 
-### 2. 配置数据库
-复制 `.env.example` 为 `.env`，填入 MySQL 账号密码：
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=你的密码
-DB_NAME=exchange_db
-```
+## 👥 核心开发团队
 
-### 3. 初始化数据库
-```bash
-mysql -u root -p --default-character-set=utf8mb4 < sql/init.sql
-mysql -u root -p --default-character-set=utf8mb4 < sql/migrations/001_add_sessions.sql
-```
-
-### 4. 启动服务
-```bash
-npm start
-```
-看到以下提示即成功：
-```
-=================================
-  北信科旧物交换平台后端已启动
-  本机访问: http://localhost:3000
-=================================
-```
-
-### 5. 公网访问（可选）
-```bash
-# 方式A：ngrok（稳定，需注册免费账号 https://ngrok.com）
-./ngrok http 3000
-
-# 方式B：localtunnel（无需注册）
-npx lt --port 3000
-```
-
-## 👤 测试账号
-
-| 用户名 | 密码 | 角色 |
-|--------|------|------|
-| admin | 123 | 管理员 |
-| 张三 / 李四 / 王五 / 赵六 / 孙七 / 周八 / 吴九 | 123 | 普通用户 |
-
-## 🔐 设备登录限制
-
-每用户最多同时 **2 台设备**在线。超出后自动踢除最早登录的设备。
-
-| 行为 | 结果 |
-|------|------|
-| 第 1 次登录 | ✅ 正常（1/2） |
-| 第 2 次登录 | ✅ 正常（2/2） |
-| 第 3 次登录 | ⚠️ 自动挤掉最早设备 |
-| 登出 | JWT 立即失效 |
-
-## 📡 API 接口
-
-### 认证
-| 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
-| POST | /api/auth/login | 登录，返回 JWT + 设备数 | 否 |
-| DELETE | /api/auth/logout | 登出，清除服务端会话 | JWT |
-| GET | /api/auth/me | 获取当前用户 + 设备数 | JWT |
-
-### 商品
-| 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
-| GET | /api/goods?keyword=&maxPrice=&condition= | 浏览在售商品 | 否 |
-| GET | /api/goods/:id | 商品详情 | 否 |
-| POST | /api/goods | 发布商品 | JWT |
-| GET | /api/goods/my | 我发布的商品 | JWT |
-| GET | /api/goods/my/offline-notifications | 下架通知 | JWT |
-
-### 管理员
-| 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
-| GET | /api/admin/goods?keyword= | 全部商品 | Admin |
-| PUT | /api/admin/goods/:id/offline | 下架（需 reason） | Admin |
-| PUT | /api/admin/goods/:id/restore | 恢复上架 | Admin |
-
-## 🔐 安全特性
-
-- ✅ 密码使用 **bcrypt** 哈希存储（cost=10）
-- ✅ **JWT** 令牌认证 + jti 追踪，有效期 24 小时
-- ✅ 角色由**服务器决定**，前端无法篡改
-- ✅ **设备限制**：每用户最多 2 台设备，超限自动踢除
-- ✅ **登出即失效**：服务端清除 session，旧 token 无法复用
-- ✅ 管理员接口有**双重中间件**保护（auth + adminOnly）
-- ✅ 所有用户输入经**服务端 XSS 转义**
-- ✅ SQL 使用**参数化查询**，防 SQL 注入
+<table align="center">
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/billypirme2">
+        <img src="https://github.com/billypirme2.png" width="80" alt="陈藤午"/><br>
+        <sub><b>陈藤午</b></sub>
+      </a><br>
+      <sub>后端开发</sub>
+    </td>
+    <td align="center" width="120">
+      <a href="https://github.com/Phoenix04028">
+        <img src="https://github.com/Phoenix04028.png" width="80" alt="沈嘉腾"/><br>
+        <sub><b>沈嘉腾</b></sub>
+      </a><br>
+      <sub>前端开发</sub>
+    </td>
+    <td align="center" width="120">
+      <a href="https://github.com/Liucz-118">
+        <img src="https://github.com/Liucz-118.png" width="80" alt="柳成志"/><br>
+        <sub><b>柳成志</b></sub>
+      </a><br>
+      <sub>仓库管理</sub>
+    </td>
+    <td align="center" width="120">
+      <a href="https://github.com/penKi0118">
+        <img src="https://github.com/penKi0118.png" width="80" alt="申人贵"/><br>
+        <sub><b>申人贵</b></sub>
+      </a><br>
+      <sub>产品测试</sub>
+    </td>
+  </tr>
+</table>
 
 ## 👥 核心开发团队
 
@@ -171,37 +260,68 @@ npx lt --port 3000
 
 ## 🤝 贡献指南
 
-欢迎参与本项目开发，本文档说明项目的协作规则与开发规范，所有贡献请遵循以下流程。
+欢迎参与本项目开发，所有贡献请遵循以下流程与规范。
 
-## 1. 参与开发流程
-1. 在仓库 Issues 板块查看现有任务，或新建 Issue 描述需求/问题
-2. 认领任务后，从 `main` 分支新建独立功能分支进行开发
+### 1. 参与开发流程
+
+1. 在仓库 Issues 板块查看现有任务，或新建 Issue 描述需求 / 问题
+2. 认领任务后，从 main 分支新建独立功能分支进行开发
 3. 本地开发完成并完成接口自测后，提交 Pull Request
 4. PR 必须关联对应 Issue，经至少 1 名项目成员 Review 通过后，方可合并入主分支
 
-## 2. 分支命名规范
+### 2. 分支命名规范
+
 - 新功能开发：`feature/功能名称`，例如 `feature/goods-publish`
 - 问题修复：`fix/问题描述`，例如 `fix/price-validate`
 - 文档更新：`docs/更新内容`，例如 `docs/update-readme`
 
-## 3. 代码提交规范
+### 3. 代码提交规范
+
 提交信息统一采用前缀 + 描述的格式，示例：
-- `feat: 新增商品搜索接口`
-- `fix: 修复登录接口参数校验问题`
-- `docs: 更新接口文档`
-- `style: 调整代码格式`
 
-## 4. Pull Request 要求
-1. PR 标题清晰说明本次变更内容
-2. PR 描述中关联对应 Issue 编号
-3. 新增接口需同步更新 README 中的接口文档
-4. 涉及数据库表结构变更，需同步更新 `sql/` 目录下的脚本
+```plaintext
+feat: 新增商品搜索接口
+fix: 修复登录接口参数校验问题
+docs: 更新接口文档
+style: 调整代码格式
+```
 
-## 5. 本地开发环境要求
+### 4. Pull Request 要求
+
+- PR 标题清晰说明本次变更内容
+- PR 描述中关联对应 Issue 编号
+- 新增接口需同步更新 README 中的接口文档
+- 涉及数据库表结构变更，需同步更新 `sql/` 目录下的脚本
+
+### 5. 本地开发环境要求
+
 - Node.js 版本 >= 16
 - MySQL 版本 >= 5.7
 - 开发前配置 `.env` 环境变量，导入 `sql/init.sql` 初始化数据库
 - 提交前本地启动服务，自测相关接口功能正常
 
-## 6. 问题反馈
+### 6. 问题反馈
+
 发现 Bug 或有功能建议，请在 Issues 中新建工单，详细描述复现步骤、预期结果与实际结果。
+
+## ❓ 常见问题
+
+**Q: 启动报错 ER_ACCESS_DENIED_ERROR**
+
+A: 检查 `.env` 中的数据库账号密码是否正确，确认 MySQL 服务已正常启动。
+
+**Q: 端口 3000 被占用怎么办？**
+
+A: 在 `.env` 文件中新增 `PORT=其他端口号` 配置，更换为可用端口。
+
+**Q: 登录后调用接口返回 401**
+
+A: 检查请求头是否正确携带 `Authorization: Bearer <token>`，确认令牌未超出 24 小时有效期。
+
+**Q: 导入 SQL 后中文乱码**
+
+A: 导入时加上 `--default-character-set=utf8mb4` 参数，同时确认数据库编码为 utf8mb4。
+
+## 📄 开源协议
+
+本项目基于 MIT License 开源，详见 LICENSE 文件。
