@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 const authRoutes = require('./routes/auth');
-const goodsRoutes = require('./routes/goods');
+const goodsRoutes = require('./routes/goods'); 
 const adminRoutes = require('./routes/admin');
 
 const app = express();
