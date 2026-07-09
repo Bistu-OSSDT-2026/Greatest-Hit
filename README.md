@@ -1,6 +1,31 @@
 # 北信科旧物交换平台 - 后端
 
-基于 **Node.js + Express + MySQL + JWT** 的二手物品交易平台后端。
+<h1 align="center">北信科旧物交换平台 · 后端</h1>
+
+<p align="center">
+  面向校园的二手闲置交易后端服务 · 商品全生命周期管理 · 权限体系 · 设备登录管控
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js->=16-green?logo=node.js" alt="Node Version">
+  <img src="https://img.shields.io/badge/MySQL->=5.7-blue?logo=mysql" alt="MySQL Version">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+  <img src="https://img.shields.io/badge/Express-4.x-lightgrey?logo=express" alt="Express">
+  <img src="https://img.shields.io/badge/JWT-Auth-orange" alt="JWT Auth">
+  <img src="https://img.shields.io/badge/维护中-✅-brightgreen" alt="Status">
+</p>
+
+<br>
+
+> 基于 **Node.js + Express + MySQL + JWT** 构建的开箱即用校园二手交易后端，覆盖商品发布检索、多设备登录限制、管理员上下架审核、下架通知等完整能力。采用分层架构设计，内置 XSS 防护、SQL 注入防御、权限中间件等安全能力，适合校园场景快速部署与二次开发。
+
+<br>
+
+<p align="center">
+  <img src="images/1.png" width="92%" alt="平台运行演示">
+</p>
+
+<br>
 
 ## 🌐 在线访问
 
