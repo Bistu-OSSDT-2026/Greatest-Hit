@@ -194,41 +194,6 @@ exchange-backend/
   <tr>
     <td align="center" width="120">
       <a href="https://github.com/billypirme2">
-        <img src="https://github.com/billypirme2.png" width="80" alt="陈藤午"/><br>
-        <sub><b>陈藤午</b></sub>
-      </a><br>
-      <sub>后端开发</sub>
-    </td>
-    <td align="center" width="120">
-      <a href="https://github.com/Phoenix04028">
-        <img src="https://github.com/Phoenix04028.png" width="80" alt="沈嘉腾"/><br>
-        <sub><b>沈嘉腾</b></sub>
-      </a><br>
-      <sub>前端开发</sub>
-    </td>
-    <td align="center" width="120">
-      <a href="https://github.com/Liucz-118">
-        <img src="https://github.com/Liucz-118.png" width="80" alt="柳成志"/><br>
-        <sub><b>柳成志</b></sub>
-      </a><br>
-      <sub>仓库管理</sub>
-    </td>
-    <td align="center" width="120">
-      <a href="https://github.com/penKi0118">
-        <img src="https://github.com/penKi0118.png" width="80" alt="申人贵"/><br>
-        <sub><b>申人贵</b></sub>
-      </a><br>
-      <sub>产品测试</sub>
-    </td>
-  </tr>
-</table>
-
-## 👥 核心开发团队
-
-<table align="center">
-  <tr>
-    <td align="center" width="120">
-      <a href="https://github.com/billypirme2">
         <img src="https://github.com/billypirme2.png" width="80" alt="开发者1"/><br>
         <sub><b>陈藤午</b></sub>
       </a><br>
