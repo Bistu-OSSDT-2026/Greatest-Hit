@@ -1,26 +1,36 @@
-# 北信科旧物交换平台 - 后端 
+# 北信科旧物交换平台 - 后端
 
 基于 **Node.js + Express + MySQL + JWT** 的二手物品交易平台后端。
+
+## 🌐 在线访问
+
+| 方式 | 地址 |
+|------|------|
+| 本机 | http://localhost:3000 |
+| 公网（ngrok 隧道） | https://lizard-strut-commodity.ngrok-free.dev |
 
 ## 📁 项目结构
 
 ```
 exchange-backend/
 ├── package.json              # 依赖配置
-├── .env                      # 环境变量
+├── .env                      # 环境变量（不上传 Git）
+├── .env.example              # 环境变量示例
 ├── server.js                 # 入口
 ├── config/
 │   └── db.js                 # MySQL 连接池
 ├── middleware/
-│   └── auth.js               # JWT 认证 + 管理员权限中间件
+│   └── auth.js               # JWT 认证 + session 验证 + 管理员权限
 ├── routes/
-│   ├── auth.js               # 登录 / 当前用户
+│   ├── auth.js               # 登录 / 登出 / 设备限制 / 当前用户
 │   ├── goods.js              # 商品浏览 / 发布 / 我的商品
 │   └── admin.js              # 管理员：全部商品 / 下架 / 恢复
 ├── utils/
 │   └── sanitize.js           # XSS 防护
 ├── sql/
-│   └── init.sql              # 建表 + 初始数据
+│   ├── init.sql              # 建表 + 初始数据
+│   └── migrations/
+│       └── 001_add_sessions.sql  # 设备限制会话表
 └── public/
     └── index.html            # 前端页面
 ```
@@ -34,7 +44,7 @@ npm install
 ```
 
 ### 2. 配置数据库
-编辑 `.env`，填入你的 MySQL 账号密码：
+复制 `.env.example` 为 `.env`，填入 MySQL 账号密码：
 ```
 DB_HOST=localhost
 DB_PORT=3306
@@ -44,11 +54,10 @@ DB_NAME=exchange_db
 ```
 
 ### 3. 初始化数据库
-在 MySQL 中执行 `sql/init.sql`：
 ```bash
-mysql -u root -p < sql/init.sql
+mysql -u root -p --default-character-set=utf8mb4 < sql/init.sql
+mysql -u root -p --default-character-set=utf8mb4 < sql/migrations/001_add_sessions.sql
 ```
-或用 Navicat / MySQL Workbench 打开 `sql/init.sql` 执行。
 
 ### 4. 启动服务
 ```bash
@@ -58,50 +67,70 @@ npm start
 ```
 =================================
   北信科旧物交换平台后端已启动
-  地址: http://localhost:3000
+  本机访问: http://localhost:3000
 =================================
 ```
 
-### 5. 访问
-浏览器打开 http://localhost:3000 即可使用。
+### 5. 公网访问（可选）
+```bash
+# 方式A：ngrok（稳定，需注册免费账号 https://ngrok.com）
+./ngrok http 3000
+
+# 方式B：localtunnel（无需注册）
+npx lt --port 3000
+```
 
 ## 👤 测试账号
 
 | 用户名 | 密码 | 角色 |
 |--------|------|------|
 | admin | 123 | 管理员 |
-| 张三 / 李四 / 王五 ... | 123 | 普通用户 |
+| 张三 / 李四 / 王五 / 赵六 / 孙七 / 周八 / 吴九 | 123 | 普通用户 |
+
+## 🔐 设备登录限制
+
+每用户最多同时 **2 台设备**在线。超出后自动踢除最早登录的设备。
+
+| 行为 | 结果 |
+|------|------|
+| 第 1 次登录 | ✅ 正常（1/2） |
+| 第 2 次登录 | ✅ 正常（2/2） |
+| 第 3 次登录 | ⚠️ 自动挤掉最早设备 |
+| 登出 | JWT 立即失效 |
 
 ## 📡 API 接口
 
 ### 认证
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/auth/login | 登录，返回 JWT |
-| GET | /api/auth/me | 获取当前用户（需 token） |
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /api/auth/login | 登录，返回 JWT + 设备数 | 否 |
+| DELETE | /api/auth/logout | 登出，清除服务端会话 | JWT |
+| GET | /api/auth/me | 获取当前用户 + 设备数 | JWT |
 
 ### 商品
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/goods?keyword=&maxPrice=&condition= | 浏览在售商品 |
-| GET | /api/goods/:id | 商品详情 |
-| POST | /api/goods | 发布商品（需 token） |
-| GET | /api/goods/my | 我发布的商品（需 token） |
-| GET | /api/goods/my/offline-notifications | 下架通知（需 token） |
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| GET | /api/goods?keyword=&maxPrice=&condition= | 浏览在售商品 | 否 |
+| GET | /api/goods/:id | 商品详情 | 否 |
+| POST | /api/goods | 发布商品 | JWT |
+| GET | /api/goods/my | 我发布的商品 | JWT |
+| GET | /api/goods/my/offline-notifications | 下架通知 | JWT |
 
-### 管理员（需 admin token）
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/admin/goods?keyword= | 全部商品 |
-| PUT | /api/admin/goods/:id/offline | 下架 |
-| PUT | /api/admin/goods/:id/restore | 恢复 |
+### 管理员
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| GET | /api/admin/goods?keyword= | 全部商品 | Admin |
+| PUT | /api/admin/goods/:id/offline | 下架（需 reason） | Admin |
+| PUT | /api/admin/goods/:id/restore | 恢复上架 | Admin |
 
 ## 🔐 安全特性
 
-- ✅ 密码使用 **bcrypt** 哈希存储
-- ✅ **JWT** 令牌认证，有效期 24 小时
+- ✅ 密码使用 **bcrypt** 哈希存储（cost=10）
+- ✅ **JWT** 令牌认证 + jti 追踪，有效期 24 小时
 - ✅ 角色由**服务器决定**，前端无法篡改
-- ✅ 管理员接口有**权限中间件**保护
+- ✅ **设备限制**：每用户最多 2 台设备，超限自动踢除
+- ✅ **登出即失效**：服务端清除 session，旧 token 无法复用
+- ✅ 管理员接口有**双重中间件**保护（auth + adminOnly）
 - ✅ 所有用户输入经**服务端 XSS 转义**
 - ✅ SQL 使用**参数化查询**，防 SQL 注入
 
@@ -131,7 +160,7 @@ npm start
 1. PR 标题清晰说明本次变更内容
 2. PR 描述中关联对应 Issue 编号
 3. 新增接口需同步更新 README 中的接口文档
-4. 涉及数据库表结构变更，需同步更新 `sql/init.sql` 文件
+4. 涉及数据库表结构变更，需同步更新 `sql/` 目录下的脚本
 
 ## 5. 本地开发环境要求
 - Node.js 版本 >= 16
