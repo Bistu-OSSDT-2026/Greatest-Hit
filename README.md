@@ -134,6 +134,41 @@ npx lt --port 3000
 - ✅ 所有用户输入经**服务端 XSS 转义**
 - ✅ SQL 使用**参数化查询**，防 SQL 注入
 
+## 👥 核心开发团队
+
+<table align="center">
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/billypirme2">
+        <img src="https://github.com/billypirme2.png" width="80" alt="开发者1"/><br>
+        <sub><b>陈藤午</b></sub>
+      </a><br>
+      <sub>后端开发</sub>
+    </td>
+    <td align="center" width="120">
+      <a href="https://github.com/Phoenix04028">
+        <img src="https://github.com/Phoenix04028.png" width="80" alt="开发者2"/><br>
+        <sub><b>沈嘉腾</b></sub>
+      </a><br>
+      <sub>前端开发</sub>
+    </td>
+    <td align="center" width="120">
+      <a href="https://github.com/Liucz-118">
+        <img src="https://github.com/Liucz-118.png" width="80" alt="开发者3"/><br>
+        <sub><b>柳成志</b></sub>
+      </a><br>
+      <sub>仓库管理</sub>
+    </td>
+    <td align="center" width="120">
+      <a href="https://github.com/penKi0118">
+        <img src="https://github.com/penKi0118.png" width="80" alt="开发者4"/><br>
+        <sub><b>申人贵</b></sub>
+      </a><br>
+      <sub>产品测试</sub>
+    </td>
+  </tr>
+</table>
+
 ## 🤝 贡献指南
 
 欢迎参与本项目开发，本文档说明项目的协作规则与开发规范，所有贡献请遵循以下流程。
