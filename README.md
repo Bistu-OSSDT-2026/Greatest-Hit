@@ -1,6 +1,4 @@
-# 北信科旧物交换平台 - 后端
-
-<h1 align="center">北信科旧物交换平台 · 后端</h1>
+<center><h1>北信科旧物交换平台 · 后端</h1></center>
 
 <p align="center">
   面向校园的二手闲置交易后端服务 · 商品全生命周期管理 · 权限体系 · 设备登录管控
@@ -22,7 +20,7 @@
 <br>
 
 <p align="center">
-  <img src="images/1.png" width="92%" alt="平台运行演示">
+  <img src="https://github.com/Bistu-OSSDT-2026/Greatest-Hit/blob/main/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260707160509_163_399.png?raw=true" width="92%" alt="平台运行演示">
 </p>
 
 <br>
